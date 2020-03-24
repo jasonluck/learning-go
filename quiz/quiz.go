@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -16,6 +15,10 @@ import (
 type options struct {
 	file      string
 	timeLimit int
+}
+
+type question struct {
+	q, a string
 }
 
 func (o options) String() string {
@@ -31,14 +34,14 @@ func parseCmdLine() options {
 	return opt
 }
 
-func readQuestions(questionFile string) map[string]string {
+func readQuestions(questionFile string) []question {
 	file, err := os.Open(questionFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	r := csv.NewReader(file)
-	questions := make(map[string]string)
+	var questions []question
 	for {
 		record, err := r.Read()
 		if err == io.EOF {
@@ -50,7 +53,10 @@ func readQuestions(questionFile string) map[string]string {
 		if cap(record) != 2 {
 			log.Fatal("Question is in incorrect format.")
 		}
-		questions[record[0]] = record[1]
+		questions = append(questions, question{
+			q: record[0],
+			a: record[1],
+		})
 	}
 	return questions
 
@@ -63,28 +69,25 @@ func main() {
 	//Parse CSV file to create question set
 	questions := readQuestions(opt.file)
 
-	questionNum := 0
 	answersCorrect := 0
 	answers := bufio.NewReader(os.Stdin)
 
 	//Prompt to start timer
 	fmt.Printf("%d second timer will start once you press [Enter]...", opt.timeLimit)
 	answers.ReadString('\n')
-	dur, _ := time.ParseDuration(strconv.Itoa(opt.timeLimit) + "s")
-	timer := time.NewTimer(dur)
+	timer := time.NewTimer(time.Duration(opt.timeLimit) * time.Second)
 	defer timer.Stop()
 
-	for k, v := range questions {
+	for i, q := range questions {
 		select {
 		case <-timer.C:
 			fmt.Printf("Time has expired! You answer %d/%d correctly.", answersCorrect, len(questions))
 			os.Exit(1)
 		default:
-			questionNum++
-			fmt.Printf("%d) %s: ", questionNum, k)
+			fmt.Printf("%d) %s: ", i+1, q.q)
 			a, _ := answers.ReadString('\n')
 			a = strings.TrimSpace(a)
-			if v == a {
+			if q.a == a {
 				answersCorrect++
 			}
 		}
