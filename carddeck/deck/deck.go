@@ -11,15 +11,22 @@ type Deck struct {
 	cards []Card
 }
 
+//Option function to execute on Deck creation
+type Option func([]Card) []Card
+
 /*
 New returns a new Deck, sorted A-K in spades, diamonds,
 clubs, hearts order.
 */
-func New() Deck {
+func New(opts ...Option) Deck {
 	cards := make([]Card, 52)
 
 	for i := 0; i < len(cards); i++ {
 		cards[i] = Card{value: (i % 13) + 1, suit: Suit((i / 13) + 1)}
+	}
+
+	for _, opt := range opts {
+		cards = opt(cards)
 	}
 
 	return Deck{
@@ -41,9 +48,12 @@ func (d *Deck) Shuffle() {
 }
 
 //Jokers are added to the deck
-func (d *Deck) Jokers(numJokers int) {
-	for i := 0; i < numJokers; i++ {
-		d.cards = append(d.cards, Card{value: 0, suit: JOKER})
+func Jokers(numJokers int) Option {
+	return func(cards []Card) []Card {
+		for i := 0; i < numJokers; i++ {
+			cards = append(cards, Card{value: 0, suit: JOKER})
+		}
+		return cards
 	}
 }
 
@@ -52,11 +62,9 @@ func (d *Deck) Sort(less func(cards []Card) func(i, j int) bool) {
 	sort.Slice(d.cards, less(d.cards))
 }
 
-func Less(cards []Card) func(i, j int) bool {
-	return func(i, j int) bool {
-		if cards[i].value == cards[j].value {
-			return cards[i].suit < cards[j].suit
-		}
-		return cards[i].value < cards[j].value
-	}
+//Draw the top card of the deck
+func (d *Deck) Draw() Card {
+	card := d.cards[0]
+	d.cards = d.cards[1:]
+	return card
 }

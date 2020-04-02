@@ -46,10 +46,10 @@ func TestShuffle(t *testing.T) {
 	}
 }
 
-func TestJokers(t *testing.T) {
-	deck := New()
+func TestNewJokers(t *testing.T) {
+
 	numJokers := 3
-	deck.Jokers(numJokers)
+	deck := New(Jokers(numJokers))
 
 	if len(deck.cards) != 52+numJokers {
 		t.Errorf("After adding %d Jokers, the deck size should have been %d but was %d", numJokers, 52+numJokers, len(deck.cards))
@@ -57,5 +57,18 @@ func TestJokers(t *testing.T) {
 	if deck.cards[52+numJokers-1].suit != JOKER {
 		t.Log(deck)
 		t.Errorf("Expected last card to be a Joker, but was %q", deck.cards[52+numJokers-1])
+	}
+}
+
+func TestDraw(t *testing.T) {
+	d := New()
+	size := len(d.cards)
+	expected := d.cards[0]
+	result := d.Draw()
+	if expected != result {
+		t.Errorf("Expected drawn card to be %q, but was %q", expected, result)
+	}
+	if len(d.cards) != size-1 {
+		t.Error("After drawing, a card was not removed from the deck.")
 	}
 }
