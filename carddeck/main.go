@@ -8,5 +8,9 @@ import (
 
 func main() {
 	deck := deck.New()
-	fmt.Print(deck)
+	fmt.Println("Fresh deck out of the box:")
+	fmt.Println(deck)
+	fmt.Println("Shuffling the deck...")
+	deck.Shuffle()
+	fmt.Println(deck)
 }

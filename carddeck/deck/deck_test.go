@@ -13,7 +13,7 @@ func TestNew(t *testing.T) {
 	}
 
 	for suitCount, suit := range Suits() {
-		for i := 0; i < 13; i++ {
+		for i := range 13 {
 			c := deck.cards[(suitCount*13)+i]
 			expected := Card{
 				value: i + 1,
@@ -47,7 +47,6 @@ func TestShuffle(t *testing.T) {
 }
 
 func TestNewJokers(t *testing.T) {
-
 	numJokers := 3
 	deck := New(Jokers(numJokers))
 
@@ -62,13 +61,76 @@ func TestNewJokers(t *testing.T) {
 
 func TestDraw(t *testing.T) {
 	d := New()
+	numCards := 1
 	size := len(d.cards)
-	expected := d.cards[0]
-	result := d.Draw()
-	if expected != result {
-		t.Errorf("Expected drawn card to be %q, but was %q", expected, result)
+	expected := d.cards[0:numCards]
+	result, err := d.Draw(numCards)
+	if err != nil {
+		t.Errorf("Unexpected error when drawing a card: %v", err)
 	}
-	if len(d.cards) != size-1 {
-		t.Error("After drawing, a card was not removed from the deck.")
+	if len(result) != numCards {
+		t.Errorf("Expected to draw %d card(s), but got %d", numCards, len(result))
+	}
+	for i := range result {
+		if expected[i] != result[i] {
+			t.Errorf("Expected drawn card to be %q, but was %q", expected, result)
+		}
+	}
+	if len(d.cards) != size-numCards {
+		t.Error("After drawing, cards were not removed from the deck.")
+	}
+}
+
+func TestDrawTooMany(t *testing.T) {
+	d := New()
+	numCards := 100 // More than the deck size
+	expected := d.cards[0:len(d.cards)]
+	result, err := d.Draw(numCards)
+
+	if err != ErrNotEnoughCards {
+		t.Errorf("Expected error %v, but got %v", ErrNotEnoughCards, err)
+	}
+	if len(result) != len(expected) {
+		t.Errorf("Expected to draw %d card(s), but got %d", len(expected), len(result))
+	}
+	for i := range result {
+		if expected[i] != result[i] {
+			t.Errorf("Expected drawn card to be %q, but was %q", expected, result)
+		}
+	}
+	if len(d.cards) != 0 {
+		t.Error("After drawing, it was expected that all cards would be removed from the deck, but some were left.")
+	}
+}
+
+func TestPutOnBottom(t *testing.T) {
+	d := New()
+	initialSize := len(d.cards)
+
+	expected := Card{value: 1, suit: SPADES}
+	d.PlaceOnBottom(expected)
+	resultSize := len(d.cards)
+	result := d.cards[resultSize-1]
+	if expected != result {
+		t.Errorf("Expected card to be placed on bottom of deck to be %q, but was %q", expected, result)
+	}
+	if resultSize != initialSize+1 {
+		t.Error("After placing a card on the bottom, the deck size did not increase by 1.")
+	}
+}
+
+func TestPutOnTop(t *testing.T) {
+	d := New()
+	initialSize := len(d.cards)
+
+	expected := Card{value: 5, suit: HEARTS}
+	d.PlaceOnTop(expected)
+	resultSize := len(d.cards)
+	result := d.cards[0]
+	if expected != result {
+		t.Errorf("Expected card to be placed on top of deck to be %q, but was %q", expected, result)
+	}
+	if resultSize != initialSize+1 {
+		t.Error("After placing a card on the top, the deck size did not increase by 1.")
 	}
 }

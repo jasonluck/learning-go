@@ -4,10 +4,10 @@ import (
 	"strconv"
 )
 
-//Suit represents the category (or suit) of playing card
+// Suit represents the category (or suit) of playing card
 type Suit int
 
-//Types of suits
+// Types of suits
 const (
 	SPADES Suit = 1 + iota
 	DIAMONDS
@@ -28,7 +28,7 @@ func (s Suit) String() string {
 	return suits[s-1]
 }
 
-//Card represents a standard playing card
+// Card represents a standard playing card
 type Card struct {
 	value int
 	suit  Suit
@@ -56,7 +56,7 @@ func (c Card) String() string {
 	return faceVal + c.suit.String()
 }
 
-//Suits returns a set of all possible card suits
+// Suits returns a set of all possible card suits
 func Suits() []Suit {
 	suits := make([]Suit, 4)
 	suits[0] = SPADES
